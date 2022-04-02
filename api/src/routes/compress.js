@@ -6,6 +6,8 @@ const fs = require('fs');
 const uuid = require('uuid');
 const path = require('path');
 
+require("dotenv").config()
+
 let inParentFolder = path.join(__dirname, '../../input/');
 let outParentFolder = path.join(__dirname, '../../output/');
 
@@ -17,8 +19,8 @@ setInterval(() => {
 
 const reqHandCompress = (req, res) => {
 
-	let inURLTemp = 'https://compressio.app/api/input/';
-	let outURLTemp = 'https://compressio.app/api/output/';
+	let inURLTemp = `${process.env.URL}/static/`;
+	let outURLTemp = `${process.env.URL}/static/`;
 
 	let uploadedImgs = null;
 	let uploadedSize = null;
@@ -36,9 +38,10 @@ const reqHandCompress = (req, res) => {
 	responseData = [];
 
 	// Creating Unique In/Out Subdirectory
-	let uniqueUUID = uuid.v4();
-	let inChildFolder = inParentFolder + uniqueUUID;
-	let outChildFolder = outParentFolder + uniqueUUID;
+	let uniqueUUIDIn = uuid.v4();
+	let uniqueUUIDOut = uuid.v4();
+	let inChildFolder = inParentFolder + uniqueUUIDIn;
+	let outChildFolder = outParentFolder + uniqueUUIDOut;
 
 	const start = async () => {
 
@@ -47,6 +50,8 @@ const reqHandCompress = (req, res) => {
 			await new Promise(resolve => {
 				fs.mkdir(inChildFolder, { recursive: true }, (err) => {
 					if (err) {
+						console.error(err)
+
 						return methods.sendError(res, 500, 'Code01, Something Went Wrong!');
 					} else { resolve(); }
 				});
@@ -54,6 +59,8 @@ const reqHandCompress = (req, res) => {
 			await new Promise(resolve => {
 				fs.mkdir(outChildFolder, { recursive: true }, (err) => {
 					if (err) {
+						console.error(err)
+
 						return methods.sendError(res, 500, 'Code02, Something Went Wrong!');
 					} else { resolve(); }
 				});
@@ -141,8 +148,8 @@ const reqHandCompress = (req, res) => {
 						let outImgPath = outChildFolder + '/' + imgName;
 
 						// Input/Output Image Public HTTP URL
-						let inImgURL = inURLTemp + uniqueUUID + '/' + imgName;
-						let outImgURL = outURLTemp + uniqueUUID + '/' + imgName;
+						let inImgURL = inURLTemp + uniqueUUIDIn + '/' + imgName;
+						let outImgURL = outURLTemp + uniqueUUIDOut + '/' + imgName;
 
 						// Data Object
 						compVal = {
@@ -174,9 +181,10 @@ const reqHandCompress = (req, res) => {
 							await compress.PNG(compVal);
 							compValAll[i] = compVal;
 
-						} else if (imgExt === 'SVG') {
-							await compress.SVG(compVal);
-							compValAll[i] = compVal;
+						// } else if (imgExt === 'SVG') {
+						// 	await compress.SVG(compVal);
+						// 	compValAll[i] = compVal;
+
 						} else if (imgExt === 'GIF') {
 							await compress.GIF(compVal);
 							compValAll[i] = compVal;
